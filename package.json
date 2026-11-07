@@ -1,0 +1,60 @@
+{
+  "name": "bankopenapi",
+  "version": "0.1.0",
+  "description": "Thư viện chính thức của BankOpenAPI cho Node.js, Next.js, Cloudflare Workers, Bun: tạo yêu cầu thanh toán chuyển khoản, VietQR, verify webhook báo có. Official BankOpenAPI SDK for Vietnamese bank-transfer payments.",
+  "keywords": [
+    "bankopenapi",
+    "vietqr",
+    "bank transfer",
+    "chuyen khoan",
+    "payment",
+    "webhook",
+    "vietnam",
+    "napas"
+  ],
+  "homepage": "https://bankopenapi.com/tai-lieu",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bankopenapi/bankopenapi-js.git"
+  },
+  "bugs": {
+    "email": "teams@bankopenapi.com"
+  },
+  "license": "MIT",
+  "author": "BankOpenAPI <teams@bankopenapi.com>",
+  "type": "module",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/esm/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/esm/index.d.ts",
+        "default": "./dist/esm/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/index.d.ts",
+        "default": "./dist/cjs/index.js"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "node --test --experimental-strip-types \"test/*.test.ts\"",
+    "prepublishOnly": "npm run typecheck && npm test && npm run build"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}

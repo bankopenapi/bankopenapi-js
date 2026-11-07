@@ -1,0 +1,24 @@
+{
+  // Kiểm tra kiểu cho src. Bản build dùng tsconfig.build.json (ESM) và tsconfig.cjs.json (CommonJS).
+  // Mã nguồn import bằng đuôi .ts để Node chạy thẳng test (type stripping); tsc đổi thành .js khi build.
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "erasableSyntaxOnly": true,
+    "allowImportingTsExtensions": true,
+    "rewriteRelativeImportExtensions": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "types": []
+  },
+  // Test chạy thẳng bằng Node (node --test) nên không cần @types/node; typecheck chỉ src
+  "include": ["src"]
+}

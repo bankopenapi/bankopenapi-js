@@ -1,0 +1,12 @@
+{
+  // Bản build (scripts/build.mjs): ESM vào dist/esm; bản CommonJS chạy lại với --module CommonJS --outDir dist/cjs.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "allowImportingTsExtensions": false,
+    "declaration": true,
+    "rootDir": "src",
+    "outDir": "dist/esm"
+  },
+  "include": ["src"]
+}
