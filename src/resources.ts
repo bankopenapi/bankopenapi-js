@@ -42,6 +42,11 @@ export interface PaymentRequestCreateParams {
   expiresInMinutes?: number;
   /** Tài khoản nhận tiền `ba_…`. Mặc định: tài khoản liên kết gần nhất */
   bankAccountId?: string;
+  /**
+   * Link quay lại website của bạn (vd. trang đơn hàng): trang `hostedUrl` có nút "Quay lại" và tự chuyển về sau khi trả
+   * xong. Phải là `https://` (sandbox cho thêm `http://`), tối đa 2048 ký tự
+   */
+  returnUrl?: string;
 }
 
 export interface PaymentRequestListParams extends PageParams {

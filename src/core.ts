@@ -1,6 +1,6 @@
 import { APIConnectionError, APITimeoutError, BankOpenAPIError, errorForStatus } from './errors.ts';
 
-export const VERSION = '0.1.0';
+export const VERSION = '0.2.0';
 export const DEFAULT_BASE_URL = 'https://app.bankopenapi.com/api/v1';
 
 export interface ClientOptions {

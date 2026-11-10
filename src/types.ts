@@ -50,6 +50,8 @@ export interface PaymentRequest {
   qr: { type: 'dynamic'; payload: string; expiresAt: string } | { type: 'static'; payload: string; expiresAt: null } | null;
   /** Trang thanh toán của BankOpenAPI để gửi cho người trả (QR, thông tin chuyển khoản, tự cập nhật khi tiền về) */
   hostedUrl: string;
+  /** Link quay lại website người bán sau khi trả xong (đặt lúc tạo); null nếu không đặt */
+  returnUrl: string | null;
   paymentLinkId: string | null;
   expiresAt: string;
   paidAt: string | null;

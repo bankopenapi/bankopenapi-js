@@ -1,6 +1,6 @@
 {
   "name": "bankopenapi",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Thư viện chính thức của BankOpenAPI cho Node.js, Next.js, Cloudflare Workers, Bun: tạo yêu cầu thanh toán chuyển khoản, VietQR, verify webhook báo có. Official BankOpenAPI SDK for Vietnamese bank-transfer payments.",
   "keywords": [
     "bankopenapi",

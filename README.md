@@ -34,7 +34,12 @@ const boa = new BankOpenAPI(); // đọc BANKOPENAPI_API_KEY
 
 // 1. Khách đặt đơn: tạo yêu cầu thanh toán
 const pr = await boa.paymentRequests.create(
-  { amount: 150000, orderId: 'DH1028', description: 'Đơn hàng DH1028' },
+  {
+    amount: 150000,
+    orderId: 'DH1028',
+    description: 'Đơn hàng DH1028',
+    returnUrl: 'https://shop.vn/don-hang/DH1028', // không bắt buộc: trang thanh toán có nút quay lại, trả xong tự chuyển về
+  },
   { idempotencyKey: 'order-DH1028' }, // bấm hai lần cũng chỉ tạo một yêu cầu
 );
 
