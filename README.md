@@ -121,6 +121,7 @@ app.post('/webhooks/bankopenapi', express.raw({ type: 'application/json' }), asy
 | `payment_request.underpaid` | `PaymentRequest` | Nhận thiếu tiền; có thể đến nhiều lần khi người trả chuyển thêm |
 | `transaction.received` | `Transaction` | Tiền vào một tài khoản đã liên kết, kể cả không thuộc đơn nào |
 | `bank_account.linked`, `bank_account.removed` | `BankAccount` | Liên kết hoặc hủy liên kết tài khoản ngân hàng |
+| `service_notice.published`, `service_notice.updated` | `ServiceNotice` | Bảo trì ngân hàng, bảo trì hệ thống, sự cố liên quan tới tài khoản của bạn; cập nhật, đã xong, hủy |
 | `webhook.test` | `{ message, endpointId, livemode }` | Tin gửi thử |
 
 ### Viết test cho endpoint webhook

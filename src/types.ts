@@ -115,7 +115,33 @@ export type WebhookEventType =
   | 'payment_request.paid'
   | 'payment_request.underpaid'
   | 'bank_account.linked'
-  | 'bank_account.removed';
+  | 'bank_account.removed'
+  | 'service_notice.published'
+  | 'service_notice.updated';
+
+/** Thông báo bảo trì hoặc sự cố (sự kiện service_notice.*). Chỉ gửi cho tài khoản bị ảnh hưởng. */
+export interface ServiceNotice {
+  object: 'service_notice';
+  /** sn_…, giữ nguyên qua mọi lần cập nhật */
+  id: string;
+  livemode: true;
+  kind: 'bank_maintenance' | 'maintenance' | 'incident';
+  title: string;
+  /** Chữ thuần, có xuống dòng */
+  body: string;
+  /** Rỗng: không riêng ngân hàng nào */
+  banks: { bin: string; name: string }[];
+  accountKind: 'all' | 'va' | 'real';
+  services: ('interbank' | 'va' | 'notifications' | 'linking' | 'dynamic_qr' | 'app')[];
+  startsAt: string | null;
+  endsAt: string | null;
+  status: 'published' | 'resolved' | 'cancelled';
+  publishedAt: string | null;
+  resolvedAt: string | null;
+  /** Cập nhật vừa gửi, chỉ có ở service_notice.updated */
+  latestUpdate: { type: 'update' | 'resolved' | 'cancelled'; body: string; createdAt: string } | null;
+  statusPageUrl: string;
+}
 
 export interface WebhookEndpoint {
   /** we_… */
@@ -128,6 +154,8 @@ export interface WebhookEndpoint {
   events: (WebhookEventType | '*')[];
   /** null: mọi tài khoản ngân hàng */
   bankAccountIds: string[] | null;
+  /** transaction.received chỉ gửi khi nội dung chuyển khoản chứa một trong các từ này (không phân biệt hoa thường, dấu). null: mọi nội dung */
+  contentKeywords: string[] | null;
   /** Tên header tùy chỉnh (giá trị không bao giờ trả về) */
   headerNames: string[];
   status: 'enabled' | 'disabled';
@@ -178,6 +206,11 @@ interface WebhookEventBase<T extends string, D> {
   /** evt_…, giữ nguyên qua mọi lần gửi lại (cũng là header webhook-id): dùng để chống xử lý trùng */
   id: string;
   type: T;
+  /**
+   * Mã tài khoản BankOpenAPI phát sinh sự kiện (cùng `id` của `account.retrieve()`): nền tảng nhận webhook của nhiều shop
+   * dùng trường này để ghép đúng shop. Sự kiện tạo trước 16/11/2026 không có.
+   */
+  account: string;
   livemode: boolean;
   /** Thời điểm sự kiện, ISO 8601 */
   timestamp: string;
@@ -190,6 +223,7 @@ interface WebhookEventBase<T extends string, D> {
  * - `payment_request.paid`: yêu cầu thanh toán đã nhận đủ hoặc thừa tiền (`status` là `paid` hoặc `overpaid`)
  * - `payment_request.underpaid`: nhận thiếu tiền, có thể đến nhiều lần khi người trả chuyển thêm
  * - `bank_account.linked`, `bank_account.removed`
+ * - `service_notice.published`, `service_notice.updated`: bảo trì ngân hàng, bảo trì hệ thống, sự cố (`ServiceNotice`)
  * - `webhook.test`: tin gửi thử từ app hoặc `webhookEndpoints.sendTest`
  */
 export type WebhookEvent =
@@ -198,4 +232,6 @@ export type WebhookEvent =
   | WebhookEventBase<'payment_request.underpaid', PaymentRequest>
   | WebhookEventBase<'bank_account.linked', BankAccount>
   | WebhookEventBase<'bank_account.removed', BankAccount>
+  | WebhookEventBase<'service_notice.published', ServiceNotice>
+  | WebhookEventBase<'service_notice.updated', ServiceNotice>
   | WebhookEventBase<'webhook.test', { message: string; endpointId: string; livemode: boolean }>;

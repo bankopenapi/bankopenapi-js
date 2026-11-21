@@ -147,6 +147,8 @@ export interface WebhookEndpointCreateParams {
   description?: string | null;
   /** Chỉ nhận sự kiện của các tài khoản ngân hàng này. null: mọi tài khoản */
   bankAccountIds?: string[] | null;
+  /** Lọc transaction.received theo nội dung chuyển khoản, vd. `['PRJ', 'JOB']` (không phân biệt hoa thường, dấu; tối đa 10 từ). null: mọi nội dung */
+  contentKeywords?: string[] | null;
   /** Tối đa 5 header gửi kèm mỗi webhook (vd. khóa riêng của hệ thống bạn) */
   headers?: WebhookHeader[] | null;
   /**
