@@ -1,6 +1,6 @@
 import { APIClient, type ClientOptions } from './core.ts';
 import { WebhookVerificationError } from './errors.ts';
-import { AccountResource, BankAccounts, DeeplinkBanks, Deeplinks, Events, PaymentRequests, Sandbox, Transactions, WebhookEndpoints } from './resources.ts';
+import { AccountResource, BankAccounts, DeeplinkBanks, DeeplinkPages, Deeplinks, Events, PaymentRequests, Sandbox, Transactions, WebhookEndpoints } from './resources.ts';
 import type { WebhookEvent } from './types.ts';
 import { signWebhook, verifyWebhook, type VerifyOptions, type WebhookHeaders } from './webhooks.ts';
 
@@ -26,6 +26,8 @@ export class BankOpenAPI {
   readonly deeplinkBanks: DeeplinkBanks;
   /** Link mở app ngân hàng của người trả, điền sẵn giao dịch */
   readonly deeplinks: Deeplinks;
+  /** Trang chọn ngân hàng dựng sẵn để gửi cho người trả */
+  readonly deeplinkPages: DeeplinkPages;
   /** Giả lập tiền về, thanh toán, tài khoản ngân hàng thử: chỉ với API key `boa_test_…` */
   readonly sandbox: Sandbox;
   readonly webhooks: Webhooks;
@@ -45,6 +47,7 @@ export class BankOpenAPI {
     this.events = new Events(this.client);
     this.deeplinkBanks = new DeeplinkBanks(this.client);
     this.deeplinks = new Deeplinks(this.client);
+    this.deeplinkPages = new DeeplinkPages(this.client);
     this.sandbox = new Sandbox(this.client);
     this.webhooks = new Webhooks(this.client.webhookSecret);
   }

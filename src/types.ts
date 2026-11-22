@@ -29,7 +29,27 @@ export interface Deeplink {
   platform: 'ios' | 'android' | null;
   paymentRequestId: string | null;
   bankAccountId: string | null;
+  /** Tài khoản chưa liên kết khi tạo bằng `transfer` */
+  transfer: { bankBin: string; accountNumber: string } | null;
+  /** Phí đã trừ vào số dư cho lần gọi này (đ): 50 ở phiên mới của `transfer`; 0 với tài khoản đã liên kết, Sandbox, cùng phiên */
+  fee: number;
   livemode: boolean;
+}
+
+/** Trang chọn ngân hàng dựng sẵn /mo-app/<id> (POST /v1/deeplink-pages) */
+export interface DeeplinkPage {
+  object: 'deeplink_page';
+  id: string;
+  /** Gửi link này cho người trả (chat, email, SMS) hoặc mở từ website của bạn */
+  url: string;
+  bankAccountId: string | null;
+  transfer: { bankBin: string; accountNumber: string } | null;
+  amount: number | null;
+  content: string | null;
+  description: string | null;
+  expiresAt: string;
+  livemode: boolean;
+  createdAt: string;
 }
 
 /** Tài khoản ngân hàng gắn kèm trong yêu cầu thanh toán và giao dịch */

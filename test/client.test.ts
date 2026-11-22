@@ -126,3 +126,24 @@ test('deeplinkBanks.list và deeplinks.create gọi đúng endpoint', async () =
   assert.equal(calls[1]!.init.method, 'POST');
   assert.equal(calls[1]!.init.body, JSON.stringify({ payerBankBin: '970436', platform: 'ios', paymentRequestId: 'pr_1' }));
 });
+
+test('deeplinks.create với transfer và deeplinkPages gọi đúng endpoint', async () => {
+  const transfer = { bankBin: '970436', accountNumber: '0123456789', amount: 200000, content: 'QUY LOP 12A' };
+  const page = { object: 'deeplink_page', id: 'dlp_1', url: 'https://app.bankopenapi.com/mo-app/dlp_1', bankAccountId: null, transfer: { bankBin: '970436', accountNumber: '0123456789' }, amount: 200000, content: 'QUY LOP 12A', description: null, expiresAt: '2026-11-23T00:00:00.000Z', livemode: true, createdAt: '2026-11-22T00:00:00.000Z' };
+  const { fn, calls } = fakeFetch([
+    json(201, { object: 'deeplink', url: 'mbbank://x', payerBank: { bin: '970422', name: 'MB Bank' }, platform: null, paymentRequestId: null, bankAccountId: null, transfer: page.transfer, fee: 50, livemode: true }),
+    json(201, page),
+    json(200, page),
+  ]);
+  const boa = new BankOpenAPI({ apiKey: KEY, fetch: fn });
+  const link = await boa.deeplinks.create({ payerBankBin: '970422', transfer });
+  assert.equal(link.fee, 50);
+  assert.equal(calls[0]!.init.body, JSON.stringify({ payerBankBin: '970422', transfer }));
+  const created = await boa.deeplinkPages.create({ transfer, description: 'Quỹ lớp' });
+  assert.equal(created.url, 'https://app.bankopenapi.com/mo-app/dlp_1');
+  assert.equal(calls[1]!.url, 'https://app.bankopenapi.com/api/v1/deeplink-pages');
+  assert.equal(calls[1]!.init.method, 'POST');
+  await boa.deeplinkPages.retrieve('dlp_1');
+  assert.equal(calls[2]!.url, 'https://app.bankopenapi.com/api/v1/deeplink-pages/dlp_1');
+  assert.equal(calls[2]!.init.method, 'GET');
+});

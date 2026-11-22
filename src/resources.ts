@@ -1,7 +1,7 @@
 import type { APIClient, RequestOptions } from './core.ts';
 import { BankOpenAPIError } from './errors.ts';
 import { pagePromise, type PagePromise } from './pagination.ts';
-import type { Account, BankAccount, Deeplink, DeeplinkBank, Event, List, PaymentRequest, Transaction, WebhookDelivery, WebhookEndpoint, WebhookEventType } from './types.ts';
+import type { Account, BankAccount, Deeplink, DeeplinkBank, DeeplinkPage, Event, List, PaymentRequest, Transaction, WebhookDelivery, WebhookEndpoint, WebhookEventType } from './types.ts';
 
 const enc = encodeURIComponent;
 
@@ -150,18 +150,46 @@ interface DeeplinkBaseParams {
   returnUrl?: string;
 }
 
-export type DeeplinkCreateParams =
-  /** Yêu cầu thanh toán còn nhận tiền: dùng đúng chuỗi QR của yêu cầu, tiền về tự khớp, có webhook payment_request.paid */
-  | (DeeplinkBaseParams & { paymentRequestId: string; bankAccountId?: never; amount?: never; content?: never })
-  /** Tài khoản đang liên kết, không có yêu cầu thanh toán (vd. nút ủng hộ) */
-  | (DeeplinkBaseParams & {
+/** Tài khoản CHƯA liên kết (vd. tài khoản của từng người bán trên nền tảng): 50đ mỗi phiên, trừ vào số dư; không có báo có */
+export interface DeeplinkTransfer {
+  /** BIN 6 chữ số của ngân hàng nhận theo chuẩn VietQR */
+  bankBin: string;
+  /** 4–24 chữ và số */
+  accountNumber: string;
+  /** Tối đa 50 ký tự */
+  accountName?: string;
+  /** VND, số nguyên 1.000–500.000.000; bỏ trống thì người trả tự nhập */
+  amount?: number;
+  /** Tối đa 25 ký tự, chỉ chữ không dấu, chữ số và khoảng trắng */
+  content?: string;
+}
+
+/** Tài khoản đang liên kết (miễn phí), hoặc tài khoản chưa liên kết (`transfer`) */
+type DeeplinkTarget =
+  | {
       bankAccountId: string;
-      paymentRequestId?: never;
+      transfer?: never;
       /** VND, số nguyên 1.000–500.000.000; bỏ trống thì người trả tự nhập */
       amount?: number;
       /** Tối đa 25 ký tự, chỉ chữ không dấu, chữ số và khoảng trắng */
       content?: string;
-    });
+    }
+  | { transfer: DeeplinkTransfer; bankAccountId?: never; amount?: never; content?: never };
+
+export type DeeplinkCreateParams =
+  /** Yêu cầu thanh toán còn nhận tiền: dùng đúng chuỗi QR của yêu cầu, tiền về tự khớp, có webhook payment_request.paid */
+  | (DeeplinkBaseParams & { paymentRequestId: string; bankAccountId?: never; transfer?: never; amount?: never; content?: never })
+  /** Tài khoản đang liên kết (vd. nút ủng hộ) hoặc tài khoản chưa liên kết */
+  | (DeeplinkBaseParams & DeeplinkTarget & { paymentRequestId?: never });
+
+export type DeeplinkPageCreateParams = DeeplinkTarget & {
+  /** Dòng mô tả hiện dưới số tiền, tối đa 200 ký tự */
+  description?: string;
+  /** `https://`: nút quay lại trên trang, và đích quay về sau khi thao tác trong app (ngân hàng nào hỗ trợ) */
+  returnUrl?: string;
+  /** 5–10.080 phút, mặc định 1.440 (1 ngày) */
+  expiresInMinutes?: number;
+};
 
 export class Deeplinks extends Resource {
   /**
@@ -170,6 +198,17 @@ export class Deeplinks extends Resource {
    */
   create(params: DeeplinkCreateParams, options?: RequestOptions): Promise<Deeplink> {
     return this.client.request('POST', '/deeplinks', { ...options, body: params });
+  }
+}
+
+export class DeeplinkPages extends Resource {
+  /** Trang chọn ngân hàng /mo-app/<id> để gửi cho người trả: điện thoại chọn ngân hàng là app mở sẵn giao dịch, máy tính hiện mã QR */
+  create(params: DeeplinkPageCreateParams, options?: RequestOptions): Promise<DeeplinkPage> {
+    return this.client.request('POST', '/deeplink-pages', { ...options, body: params });
+  }
+
+  retrieve(id: string, options?: RequestOptions): Promise<DeeplinkPage> {
+    return this.client.request('GET', `/deeplink-pages/${enc(id)}`, options);
   }
 }
 

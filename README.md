@@ -163,7 +163,25 @@ const link = await boa.deeplinks.create({
 // Trả link.url về trình duyệt rồi: window.location.href = url
 ```
 
-Đơn vẫn chỉ coi là đã trả theo webhook `payment_request.paid`. Sandbox trả link giả `bankopenapi-sandbox://…`. Chi tiết: [tài liệu](https://bankopenapi.com/tai-lieu/api/deeplink).
+Đơn vẫn chỉ coi là đã trả theo webhook `payment_request.paid`. Sandbox trả link giả `bankopenapi-sandbox://…`.
+
+Nền tảng nhiều người bán mở app chuyển tới tài khoản **chưa liên kết** bằng `transfer` (50đ mỗi phiên, trừ vào số dư; không có báo có cho tài khoản này). Không muốn tự dựng giao diện thì tạo trang chọn ngân hàng rồi gửi link cho người trả:
+
+```ts
+const link = await boa.deeplinks.create({
+  payerBankBin: '970422',
+  transfer: { bankBin: '970436', accountNumber: '0123456789', accountName: 'NGUYEN VAN A', amount: 150000, content: 'DH1028' },
+});
+link.fee;                                                    // 50 ở phiên mới, 0 khi cùng phiên (30 phút)
+
+const page = await boa.deeplinkPages.create({
+  transfer: { bankBin: '970436', accountNumber: '0123456789', amount: 200000, content: 'QUY LOP 12A' },
+  description: 'Quỹ lớp 12A tháng 12',
+});
+page.url;                                                    // https://app.bankopenapi.com/mo-app/dlp_…
+```
+
+Số dư không đủ thì ném `BankOpenAPIError` có `status` 402, `code` `PAYMENT_REQUIRED`: hiện mã QR thay thế. Chi tiết: [tài liệu](https://bankopenapi.com/tai-lieu/api/deeplink).
 
 ## Danh sách và phân trang
 
@@ -188,7 +206,8 @@ for await (const tx of boa.transactions.list({ type: 'credit', from: '2026-11-01
 | `boa.webhookEndpoints` | `create`, `retrieve`, `update`, `delete`, `list`, `retrieveSecret`, `rotateSecret`, `sendTest`, `testUrl`, `listDeliveries`, `retrieveDelivery`, `retryDelivery`, `retryFailed` |
 | `boa.events` | `list({ type })`, `retrieve`, `resend` |
 | `boa.deeplinkBanks` | `list` |
-| `boa.deeplinks` | `create({ payerBankBin, platform, paymentRequestId \| bankAccountId, amount, content, returnUrl })` |
+| `boa.deeplinks` | `create({ payerBankBin, platform, paymentRequestId \| bankAccountId \| transfer, amount, content, returnUrl })` |
+| `boa.deeplinkPages` | `create({ bankAccountId \| transfer, amount, content, description, returnUrl, expiresInMinutes })`, `retrieve` |
 | `boa.account` | `retrieve` (thử API key) |
 | `boa.sandbox` | `createBankAccount`, `createTransaction`, `payPaymentRequest` |
 | `boa.webhooks` | `verify`, `sign` |
