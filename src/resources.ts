@@ -1,7 +1,7 @@
 import type { APIClient, RequestOptions } from './core.ts';
 import { BankOpenAPIError } from './errors.ts';
 import { pagePromise, type PagePromise } from './pagination.ts';
-import type { Account, BankAccount, Event, List, PaymentRequest, Transaction, WebhookDelivery, WebhookEndpoint, WebhookEventType } from './types.ts';
+import type { Account, BankAccount, Deeplink, DeeplinkBank, Event, List, PaymentRequest, Transaction, WebhookDelivery, WebhookEndpoint, WebhookEventType } from './types.ts';
 
 const enc = encodeURIComponent;
 
@@ -129,6 +129,47 @@ export class BankAccounts extends Resource {
   /** Xem một tài khoản ở mọi trạng thái (cả đã hủy liên kết) */
   retrieve(id: string, options?: RequestOptions): Promise<BankAccount> {
     return this.client.request('GET', `/bank-accounts/${enc(id)}`, options);
+  }
+}
+
+// ---------- Mở app ngân hàng (deeplink) ----------
+
+export class DeeplinkBanks extends Resource {
+  /** 32 ngân hàng của người trả mở app được, nhiều người dùng trước. Ít đổi: lưu cache vài giờ là đủ */
+  list(options?: RequestOptions): Promise<List<DeeplinkBank>> {
+    return this.client.request('GET', '/deeplink-banks', options);
+  }
+}
+
+interface DeeplinkBaseParams {
+  /** BIN ngân hàng của người trả, lấy từ `deeplinkBanks.list()` */
+  payerBankBin: string;
+  /** Bắt buộc với ngân hàng có `platformRequired: true` */
+  platform?: 'ios' | 'android';
+  /** `https://`: chuyển người trả về sau khi thao tác trong app (ngân hàng nào hỗ trợ), kèm `deeplinkStatus` chỉ để hiển thị */
+  returnUrl?: string;
+}
+
+export type DeeplinkCreateParams =
+  /** Yêu cầu thanh toán còn nhận tiền: dùng đúng chuỗi QR của yêu cầu, tiền về tự khớp, có webhook payment_request.paid */
+  | (DeeplinkBaseParams & { paymentRequestId: string; bankAccountId?: never; amount?: never; content?: never })
+  /** Tài khoản đang liên kết, không có yêu cầu thanh toán (vd. nút ủng hộ) */
+  | (DeeplinkBaseParams & {
+      bankAccountId: string;
+      paymentRequestId?: never;
+      /** VND, số nguyên 1.000–500.000.000; bỏ trống thì người trả tự nhập */
+      amount?: number;
+      /** Tối đa 25 ký tự, chỉ chữ không dấu, chữ số và khoảng trắng */
+      content?: string;
+    });
+
+export class Deeplinks extends Resource {
+  /**
+   * Link mở app ngân hàng của người trả trên điện thoại, điền sẵn số tài khoản, số tiền, nội dung. Gọi lúc người trả chọn
+   * ngân hàng (mỗi lần bấm một lần gọi), từ server của bạn. Đơn chỉ coi là đã trả theo webhook, không theo việc app đã mở.
+   */
+  create(params: DeeplinkCreateParams, options?: RequestOptions): Promise<Deeplink> {
+    return this.client.request('POST', '/deeplinks', { ...options, body: params });
   }
 }
 

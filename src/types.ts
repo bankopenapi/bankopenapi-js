@@ -8,6 +8,30 @@ export interface List<T> {
   hasMore?: boolean;
 }
 
+/** Ngân hàng của người trả mở app được bằng deeplink (GET /v1/deeplink-banks) */
+export interface DeeplinkBank {
+  object: 'deeplink_bank';
+  /** BIN ngân hàng, gửi lại ở `payerBankBin` */
+  bin: string;
+  name: string;
+  /** Logo chính thức đã cắt lề, nền trong suốt; null nếu chưa có */
+  logoUrl: string | null;
+  /** Phải gửi `platform` khi tạo deeplink cho ngân hàng này */
+  platformRequired: boolean;
+}
+
+/** Link mở app ngân hàng của người trả, điền sẵn giao dịch (POST /v1/deeplinks) */
+export interface Deeplink {
+  object: 'deeplink';
+  /** Chuyển trình duyệt sang link này (`window.location.href = url`); sandbox là link giả `bankopenapi-sandbox://…` */
+  url: string;
+  payerBank: { bin: string; name: string };
+  platform: 'ios' | 'android' | null;
+  paymentRequestId: string | null;
+  bankAccountId: string | null;
+  livemode: boolean;
+}
+
 /** Tài khoản ngân hàng gắn kèm trong yêu cầu thanh toán và giao dịch */
 export interface BankAccountRef {
   id: string;

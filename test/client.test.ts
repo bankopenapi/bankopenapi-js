@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { APIClient } from '../src/core.ts';
+import { BankOpenAPI } from '../src/index.ts';
 import { AuthenticationError, BankOpenAPIError, ConflictError, InvalidRequestError, RateLimitError } from '../src/errors.ts';
 
 type Call = { url: string; init: RequestInit };
@@ -108,4 +109,20 @@ test('API key sai dạng hoặc thiếu thì báo lỗi ngay khi tạo client', 
 test('livemode theo tiền tố khóa', () => {
   assert.equal(new APIClient({ apiKey: KEY }).livemode, false);
   assert.equal(new APIClient({ apiKey: 'boa_live_abc' }).livemode, true);
+});
+
+test('deeplinkBanks.list và deeplinks.create gọi đúng endpoint', async () => {
+  const { fn, calls } = fakeFetch([
+    json(200, { object: 'list', data: [{ object: 'deeplink_bank', bin: '970436', name: 'Vietcombank', logoUrl: null, platformRequired: true }] }),
+    json(201, { object: 'deeplink', url: 'bankopenapi-sandbox://deeplink?bank=970436&platform=ios', payerBank: { bin: '970436', name: 'Vietcombank' }, platform: 'ios', paymentRequestId: 'pr_1', bankAccountId: null, livemode: false }),
+  ]);
+  const boa = new BankOpenAPI({ apiKey: KEY, fetch: fn });
+  const banks = await boa.deeplinkBanks.list();
+  assert.equal(banks.data[0]!.bin, '970436');
+  assert.equal(calls[0]!.url, 'https://app.bankopenapi.com/api/v1/deeplink-banks');
+  const link = await boa.deeplinks.create({ payerBankBin: '970436', platform: 'ios', paymentRequestId: 'pr_1' });
+  assert.equal(link.object, 'deeplink');
+  assert.equal(calls[1]!.url, 'https://app.bankopenapi.com/api/v1/deeplinks');
+  assert.equal(calls[1]!.init.method, 'POST');
+  assert.equal(calls[1]!.init.body, JSON.stringify({ payerBankBin: '970436', platform: 'ios', paymentRequestId: 'pr_1' }));
 });

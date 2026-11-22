@@ -147,6 +147,24 @@ await boa.sandbox.payPaymentRequest(pr.id);                  // người mua "ch
 await boa.sandbox.createTransaction({ amount: 50000, content: 'chuyen tien' }); // tiền vào không thuộc đơn nào
 ```
 
+## Mở app ngân hàng (deeplink)
+
+Người trả xem đơn trên điện thoại thì không quét được mã QR trên chính màn hình đó. Lúc họ chọn ngân hàng trên trang thanh toán của bạn, server tạo link mở thẳng app ngân hàng, điền sẵn số tài khoản, số tiền, nội dung:
+
+```ts
+const banks = await boa.deeplinkBanks.list();                // 32 ngân hàng: bin, name, logoUrl, platformRequired
+
+const link = await boa.deeplinks.create({
+  payerBankBin: '970436',                                    // ngân hàng người trả vừa chọn
+  platform: 'ios',                                           // 'ios' | 'android', theo user agent
+  paymentRequestId: pr.id,                                   // hoặc bankAccountId + amount + content
+  returnUrl: 'https://shop.example.com/don-hang/DH1028',
+});
+// Trả link.url về trình duyệt rồi: window.location.href = url
+```
+
+Đơn vẫn chỉ coi là đã trả theo webhook `payment_request.paid`. Sandbox trả link giả `bankopenapi-sandbox://…`. Chi tiết: [tài liệu](https://bankopenapi.com/tai-lieu/api/deeplink).
+
 ## Danh sách và phân trang
 
 Hàm `list()` trả một trang khi `await`, hoặc duyệt hết mọi trang bằng `for await`:
@@ -169,6 +187,8 @@ for await (const tx of boa.transactions.list({ type: 'credit', from: '2026-11-01
 | `boa.bankAccounts` | `list`, `retrieve` (liên kết tài khoản mới làm trong app vì cần OTP của ngân hàng) |
 | `boa.webhookEndpoints` | `create`, `retrieve`, `update`, `delete`, `list`, `retrieveSecret`, `rotateSecret`, `sendTest`, `testUrl`, `listDeliveries`, `retrieveDelivery`, `retryDelivery`, `retryFailed` |
 | `boa.events` | `list({ type })`, `retrieve`, `resend` |
+| `boa.deeplinkBanks` | `list` |
+| `boa.deeplinks` | `create({ payerBankBin, platform, paymentRequestId \| bankAccountId, amount, content, returnUrl })` |
 | `boa.account` | `retrieve` (thử API key) |
 | `boa.sandbox` | `createBankAccount`, `createTransaction`, `payPaymentRequest` |
 | `boa.webhooks` | `verify`, `sign` |
